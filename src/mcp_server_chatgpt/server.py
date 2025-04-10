@@ -83,6 +83,9 @@ def ask_chatgpt(prompt: str) -> Dict[str, Any]:
             "help": result["help"]
         }
 
+def main():
+    """Entry point for the MCP server."""
+    mcp.run()
 
 if __name__ == "__main__":
-    mcp.run() 
+    main() 
