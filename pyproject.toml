@@ -33,4 +33,4 @@ build-backend = "hatchling.build"
 packages = ["src/mcp_server_chatgpt"]
 
 [project.scripts]
-mcp-server-anki = "mcp_server_chatgpt.server:main"
+mcp-server-chatgpt = "mcp_server_chatgpt.server:main"
