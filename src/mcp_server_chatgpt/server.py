@@ -1,73 +1,74 @@
 import subprocess
+import os
 from typing import Optional, Dict, Any
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("ChatGPT")
 
-def run_applescript(script: str) -> Dict[str, Any]:
-    """Run an AppleScript and return its output and status."""
+def run_applescript(script: str, wait_for_output: bool = True) -> Dict[str, Any]:
+    """
+    Run an AppleScript and return its output and status.
+    
+    Args:
+        script: The AppleScript to run
+        wait_for_output: Whether to wait for and capture output
+    """
     try:
-        result = subprocess.run(
-            ['osascript', '-e', script],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return {
-            "success": True,
-            "output": result.stdout.strip()
-        }
-    except subprocess.CalledProcessError as e:
-        error_msg = e.stderr.strip()
-        help_msg = ""
-        
-        if "is not allowed to send keystrokes" in error_msg:
-            help_msg = (
-                "Permission Error: The script needs accessibility permissions.\n"
-                "1. Open System Settings > Privacy & Security > Accessibility\n"
-                "2. Add and enable your terminal application\n"
-                "3. Also check System Settings > Privacy & Security > Automation"
+        if wait_for_output:
+            # Run synchronously and capture output
+            result = subprocess.run(
+                ['osascript', '-e', script],
+                capture_output=True,
+                text=True,
+                check=True
             )
-        elif "not allowed to send apple events to" in error_msg.lower():
-            help_msg = (
-                "Permission Error: The script needs automation permissions.\n"
-                "1. Open System Settings > Privacy & Security > Automation\n"
-                "2. Enable permissions for your terminal to control 'ChatGPT' and 'System Events'"
+            return {
+                "success": True,
+                "output": result.stdout.strip()
+            }
+        else:
+            # Use Popen for non-blocking execution
+            subprocess.Popen(
+                ['osascript', '-e', script], 
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True
             )
-        
+            return {
+                "success": True,
+                "output": ""
+            }
+    except Exception as e:
+        error_msg = str(e)
         return {
             "success": False,
             "error": error_msg,
-            "help": help_msg
         }
 
 @mcp.tool()
-def ask_chatgpt(prompt: str) -> Dict[str, Any]:
+def ask_chatgpt(prompt: str, wait_for_output: bool = False) -> Dict[str, Any]:
     """
-    Send a prompt to ChatGPT macOS app and optionally wait for a response.
+    Send a prompt to ChatGPT macOS app using Shortcuts.
     
     Args:
         prompt: The text to send to ChatGPT
-    
+        wait_for_output: Whether to wait for ChatGPT to respond
     Returns:
         Dict containing operation status
     """
+    # Escape double quotes in the prompt for AppleScript
+    escaped_prompt = prompt.replace('"', '\\"')
+    
     script = f'''
-    tell application "ChatGPT"
-        activate
-        delay 1
-        
-        tell application "System Events"
-            tell process "ChatGPT"
-                keystroke "{prompt}"
-                delay 0.5
-                keystroke return
-            end tell
-        end tell
+    set shortcutName to "Ask ChatGPT on Mac"
+    set shortcutInput to "{escaped_prompt}"
+    
+    tell application "Shortcuts Events"
+        run shortcut shortcutName with input shortcutInput
     end tell
     '''
     
-    result = run_applescript(script)
+    result = run_applescript(script, wait_for_output=wait_for_output)
     
     if result["success"]:
         return {
@@ -80,7 +81,6 @@ def ask_chatgpt(prompt: str) -> Dict[str, Any]:
             "operation": "ask_chatgpt",
             "status": "error",
             "message": result["error"],
-            "help": result["help"]
         }
 
 def main():

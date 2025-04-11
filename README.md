@@ -4,15 +4,12 @@
 
 - [ChatGPT macOS app](https://openai.com/chatgpt/download/)
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- Install the ["Ask ChatGPT on Mac" shortcut](https://www.icloud.com/shortcuts/6ae86a39a31e4ec5938abad953ecfd64)
 
-## Required Permissions
+## Required Shortcuts
 
-Before using the server, you need to grant the following permissions:
-
-1. Open System Settings > Privacy & Security > Accessibility
-2. Click the "+" button and add your mcp client (cursor, chatwise, etc.)
-3. Make sure the checkbox next to your mcp client app is checked
-
+1. Download and install the ["Ask ChatGPT on Mac" shortcut](https://www.icloud.com/shortcuts/6ae86a39a31e4ec5938abad953ecfd64)
+2. Make sure the shortcut is named exactly "Ask ChatGPT on Mac"
 
 ## Usage
 
