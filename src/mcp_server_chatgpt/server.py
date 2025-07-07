@@ -54,33 +54,46 @@ def ask_chatgpt(prompt: str, wait_for_output: bool = False) -> Dict[str, Any]:
         prompt: The text to send to ChatGPT
         wait_for_output: Whether to wait for ChatGPT to respond
     Returns:
-        Dict containing operation status
+        Dict containing operation status and response
     """
-    # Escape double quotes in the prompt for AppleScript
-    escaped_prompt = prompt.replace('"', '\\"')
-    
-    script = f'''
-    set shortcutName to "Ask ChatGPT on Mac"
-    set shortcutInput to "{escaped_prompt}"
-    
-    tell application "Shortcuts Events"
-        run shortcut shortcutName with input shortcutInput
-    end tell
-    '''
-    
-    result = run_applescript(script, wait_for_output=wait_for_output)
-    
-    if result["success"]:
-        return {
-            "operation": "ask_chatgpt",
-            "status": "success",
-            "message": result["output"]
-        }
-    else:
+    try:
+        if wait_for_output:
+            # Use shortcuts command directly to capture output
+            result = subprocess.run(
+                ['shortcuts', 'run', 'Ask ChatGPT on Mac', '-i', prompt],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return {
+                "operation": "ask_chatgpt",
+                "status": "success",
+                "message": result.stdout.strip()
+            }
+        else:
+            # Run without waiting for output
+            subprocess.Popen(
+                ['shortcuts', 'run', 'Ask ChatGPT on Mac', '-i', prompt],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True
+            )
+            return {
+                "operation": "ask_chatgpt",
+                "status": "success",
+                "message": "Sent to ChatGPT (not waiting for response)"
+            }
+    except subprocess.CalledProcessError as e:
         return {
             "operation": "ask_chatgpt",
             "status": "error",
-            "message": result["error"],
+            "message": f"Shortcuts command failed: {e.stderr.strip() if e.stderr else str(e)}"
+        }
+    except Exception as e:
+        return {
+            "operation": "ask_chatgpt",
+            "status": "error",
+            "message": f"Unexpected error: {str(e)}"
         }
 
 def main():
