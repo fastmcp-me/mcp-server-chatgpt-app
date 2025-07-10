@@ -36,8 +36,14 @@ ID: ChatGPT
 Command: uvx mcp-server-chatgpt-app
 ```
 
+
 ## local development
 
 ```
 uv --directory $HOME/Developer/mcp-server-chatgpt-app/src/mcp_server_chatgpt run server.py
 ```
+
+
+> [!CAUTION]
+> Chatwise did not close mcp server even when itself is closed, which may lead to multiple mcp servers running at the same time.
+> DO remember to clean them all up: `pkill -f 'mcp-server-chatgpt-app'`
